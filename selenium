@@ -1,0 +1,201 @@
+import time
+import csv
+from seleniumbase import Driver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException, NoSuchElementException
+
+def extract_jobs(driver, job_list):
+    try:
+        jobs = WebDriverWait(driver, 20).until(
+            EC.presence_of_all_elements_located(
+                (By.XPATH, "//div[@class='cust-job-tuple layout-wrapper lay-2 sjw__tuple ']"))
+        )
+
+        for job in jobs:
+            try:
+                title = job.find_element(By.CLASS_NAME, "title").text.strip()
+                skill = job.find_element(By.CLASS_NAME, "tags-gt").text.strip()
+                location_element = job.find_element(By.XPATH, ".//span[@class='ni-job-tuple-icon ni-job-tuple-icon-srp-location loc']")
+                location = location_element.text
+                exp_element = job.find_element(By.XPATH, ".//span[@class='ni-job-tuple-icon ni-job-tuple-icon-srp-experience exp']")
+                experience = exp_element.text
+                sal = job.find_element(By.XPATH, ".//span[@class='ni-job-tuple-icon ni-job-tuple-icon-srp-rupee sal']")
+                salary = sal.text
+
+                if "Not disclosed" in location or "Not disclosed" in experience or "Not disclosed" in salary:
+                    continue
+
+                job_list.append({
+                    "Title": title,
+                    "Skill": skill,
+                    "Location": location,
+                    "Experience": experience,
+                    "Salary": salary
+                })
+            except NoSuchElementException as e:
+                print("An element was not found while extracting job details:", e)
+    except TimeoutException:
+        print("Timeout occurred while waiting for job listings to load.")
+
+def go_to_next_page(driver):
+    try:
+        next_button = WebDriverWait(driver, 20).until(
+            EC.element_to_be_clickable((By.XPATH, "//a[contains(@class, 'fright fs14 btn-secondary br2') or contains(text(), 'Next')]"))
+        )
+        next_button.click()
+        return True
+    except TimeoutException:
+        print("No more pages or timeout occurred while waiting for the 'Next' button.")
+        return False
+    except NoSuchElementException:
+        print("The 'Next' button was not found.")
+        return False
+
+def main():
+    urls = [
+        "https://www.naukri.com/software-developer-jobs-in-india?k=software%20developer&l=india&experience=0&qproductJobSource=2&naukriCampus=true&experience=0&nignbevent_src=jobsearchDeskGNB",
+        "https://www.naukri.com/software-developer-jobs-in-india-2",
+        "https://www.naukri.com/software-developer-jobs-in-india-3",
+        "https://www.naukri.com/software-developer-jobs-in-india-4",
+        "https://www.naukri.com/software-developer-jobs-in-india-5",
+        "https://www.naukri.com/software-developer-jobs-in-india-6",
+        "https://www.naukri.com/software-developer-jobs-in-india-7",
+        "https://www.naukri.com/software-developer-jobs-in-india-8",
+        "https://www.naukri.com/software-developer-jobs-in-india-9",
+        "https://www.naukri.com/software-developer-jobs-in-india-10",
+        "https://www.naukri.com/software-developer-jobs-in-india-11",
+        "https://www.naukri.com/software-developer-jobs-in-india-12",
+        "https://www.naukri.com/software-developer-jobs-in-india-13",
+        "https://www.naukri.com/software-developer-jobs-in-india-14",
+        "https://www.naukri.com/software-developer-jobs-in-india-15",
+        "https://www.naukri.com/software-developer-jobs-in-india-16",
+        "https://www.naukri.com/software-developer-jobs-in-india-17",
+        "https://www.naukri.com/software-developer-jobs-in-india-18",
+        "https://www.naukri.com/software-developer-jobs-in-india-19",
+        "https://www.naukri.com/software-developer-jobs-in-india-20",
+        "https://www.naukri.com/software-developer-jobs-in-india-21",
+        "https://www.naukri.com/software-developer-jobs-in-india-22",
+        "https://www.naukri.com/software-developer-jobs-in-india-23",
+        "https://www.naukri.com/software-developer-jobs-in-india-24",
+        "https://www.naukri.com/software-developer-jobs-in-india-25",
+        "https://www.naukri.com/software-developer-jobs-in-india-26",
+        "https://www.naukri.com/software-developer-jobs-in-india-27",
+        "https://www.naukri.com/software-developer-jobs-in-india-28",
+        "https://www.naukri.com/software-developer-jobs-in-india-29",
+        "https://www.naukri.com/software-developer-jobs-in-india-30",
+        "https://www.naukri.com/software-developer-jobs-in-india-31",
+        "https://www.naukri.com/software-developer-jobs-in-india-32",
+        "https://www.naukri.com/software-developer-jobs-in-india-33",
+        "https://www.naukri.com/software-developer-jobs-in-india-34",
+        "https://www.naukri.com/software-developer-jobs-in-india-35",
+        "https://www.naukri.com/software-developer-jobs-in-india-36",
+        "https://www.naukri.com/software-developer-jobs-in-india-37",
+        "https://www.naukri.com/software-developer-jobs-in-india-38",
+        "https://www.naukri.com/software-developer-jobs-in-india-39",
+        "https://www.naukri.com/software-developer-jobs-in-india-40",
+        "https://www.naukri.com/software-developer-jobs-in-india-41",
+        "https://www.naukri.com/software-developer-jobs-in-india-42",
+        "https://www.naukri.com/software-developer-jobs-in-india-43",
+        "https://www.naukri.com/software-developer-jobs-in-india-44",
+        "https://www.naukri.com/software-developer-jobs-in-india-45",
+        "https://www.naukri.com/software-developer-jobs-in-india-46",
+        "https://www.naukri.com/software-developer-jobs-in-india-47",
+        "https://www.naukri.com/software-developer-jobs-in-india-48",
+        "https://www.naukri.com/software-developer-jobs-in-india-49",
+        "https://www.naukri.com/software-developer-jobs-in-india-50",
+        "https://www.naukri.com/software-developer-jobs-in-india-51",
+        "https://www.naukri.com/software-developer-jobs-in-india-52",
+        "https://www.naukri.com/software-developer-jobs-in-india-53",
+        "https://www.naukri.com/software-developer-jobs-in-india-54",
+        "https://www.naukri.com/software-developer-jobs-in-india-55",
+        "https://www.naukri.com/software-developer-jobs-in-india-56",
+        "https://www.naukri.com/software-developer-jobs-in-india-57",
+        "https://www.naukri.com/software-developer-jobs-in-india-58",
+        "https://www.naukri.com/software-developer-jobs-in-india-59",
+        "https://www.naukri.com/software-developer-jobs-in-india-60",
+        "https://www.naukri.com/software-developer-jobs-in-india-61",
+        "https://www.naukri.com/software-developer-jobs-in-india-62",
+        "https://www.naukri.com/software-developer-jobs-in-india-63",
+        "https://www.naukri.com/software-developer-jobs-in-india-64",
+        "https://www.naukri.com/software-developer-jobs-in-india-65",
+        "https://www.naukri.com/software-developer-jobs-in-india-66",
+        "https://www.naukri.com/software-developer-jobs-in-india-67",
+        "https://www.naukri.com/software-developer-jobs-in-india-68",
+        "https://www.naukri.com/software-developer-jobs-in-india-69",
+        "https://www.naukri.com/software-developer-jobs-in-india-70",
+        "https://www.naukri.com/software-developer-jobs-in-india-71",
+        "https://www.naukri.com/software-developer-jobs-in-india-72",
+        "https://www.naukri.com/software-developer-jobs-in-india-73",
+        "https://www.naukri.com/software-developer-jobs-in-india-74",
+        "https://www.naukri.com/software-developer-jobs-in-india-75",
+        "https://www.naukri.com/software-developer-jobs-in-india-76",
+        "https://www.naukri.com/software-developer-jobs-in-india-77",
+        "https://www.naukri.com/software-developer-jobs-in-india-78",
+        "https://www.naukri.com/software-developer-jobs-in-india-79",
+        "https://www.naukri.com/software-developer-jobs-in-india-80",
+        "https://www.naukri.com/software-developer-jobs-in-india-81",
+        "https://www.naukri.com/software-developer-jobs-in-india-82",
+        "https://www.naukri.com/software-developer-jobs-in-india-83",
+        "https://www.naukri.com/software-developer-jobs-in-india-84",
+        "https://www.naukri.com/software-developer-jobs-in-india-85",
+        "https://www.naukri.com/software-developer-jobs-in-india-88",
+        "https://www.naukri.com/software-developer-jobs-in-india-89",
+        "https://www.naukri.com/software-developer-jobs-in-india-90",
+        "https://www.naukri.com/software-developer-jobs-in-india-91",
+        "https://www.naukri.com/software-developer-jobs-in-india-91",
+        "https://www.naukri.com/software-developer-jobs-in-india-92",
+        "https://www.naukri.com/software-developer-jobs-in-india-93",
+        "https://www.naukri.com/software-developer-jobs-in-india-94",
+        "https://www.naukri.com/software-developer-jobs-in-india-95",
+        "https://www.naukri.com/software-developer-jobs-in-india-96",
+        "https://www.naukri.com/software-developer-jobs-in-india-97",
+        "https://www.naukri.com/software-developer-jobs-in-india-98",
+        "https://www.naukri.com/software-developer-jobs-in-india-99",
+        "https://www.naukri.com/software-developer-jobs-in-india-100",
+        "https://www.naukri.com/software-developer-jobs-in-india-101",
+        "https://www.naukri.com/software-developer-jobs-in-india-102",
+        "https://www.naukri.com/software-developer-jobs-in-india-103",
+        "https://www.naukri.com/software-developer-jobs-in-india-104",
+        "https://www.naukri.com/software-developer-jobs-in-india-105"
+        
+            
+        
+        
+        
+        
+    ]
+
+    driver = Driver(uc=True)
+    job_list = []
+
+    try:
+        max_pages = 5
+
+        for url in urls:
+            driver.get(url)
+            page_count = 0
+
+            while page_count < max_pages:
+                extract_jobs(driver, job_list)
+                page_count += 1
+                if not go_to_next_page(driver):
+                    break
+
+    except Exception as e:
+        print("An unexpected error occurred:", e)
+    finally:
+        driver.quit()
+
+    # Write job_list to a CSV file
+    with open('job_listing12.csv', 'w', newline='', encoding='utf-8') as csvfile:
+        fieldnames = ['Title', 'Skill', 'Location', 'Experience', 'Salary']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+        writer.writeheader()
+        for job in job_list:
+            writer.writerow(job)
+
+if _name_ == "_main_":
+    main()
